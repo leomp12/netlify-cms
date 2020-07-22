@@ -1,9 +1,15 @@
 import React from 'react';
 import { fromJS, Map } from 'immutable';
 import { last } from 'lodash';
-import { render, fireEvent, wait } from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import { NetlifyCmsWidgetRelation } from '../';
-import { expandPath } from '../RelationControl';
+
+jest.mock('react-window', () => {
+  const FixedSizeList = props => props.itemData.options;
+  return {
+    FixedSizeList,
+  };
+});
 
 const RelationControl = NetlifyCmsWidgetRelation.controlComponent;
 
@@ -128,36 +134,51 @@ class RelationController extends React.Component {
     queryHits: Map(),
   };
 
+  mounted = false;
+
+  componentDidMount() {
+    this.mounted = true;
+  }
+
+  componentWillUnmount() {
+    this.mounted = false;
+  }
+
   handleOnChange = jest.fn(value => {
     this.setState({ ...this.state, value });
   });
 
   setQueryHits = jest.fn(hits => {
-    const queryHits = Map().set('relation-field', hits);
-    this.setState({ ...this.state, queryHits });
+    if (this.mounted) {
+      const queryHits = Map().set('relation-field', hits);
+      this.setState({ ...this.state, queryHits });
+    }
   });
 
   query = jest.fn((...args) => {
     const queryHits = generateHits(25);
 
-    if (args[1] === 'numbers_collection') {
-      return Promise.resolve({ payload: { response: { hits: numberFieldsHits } } });
-    } else if (last(args) === 'nested_file') {
-      return Promise.resolve({ payload: { response: { hits: nestedFileCollectionHits } } });
-    } else if (last(args) === 'simple_file') {
-      return Promise.resolve({ payload: { response: { hits: simpleFileCollectionHits } } });
-    } else if (last(args) === 'YAML') {
-      return Promise.resolve({ payload: { response: { hits: [last(queryHits)] } } });
-    } else if (last(args) === 'Nested') {
-      return Promise.resolve({
-        payload: { response: { hits: [queryHits[queryHits.length - 2]] } },
-      });
-    } else if (last(args) === 'Deeply nested') {
-      return Promise.resolve({
-        payload: { response: { hits: [queryHits[queryHits.length - 3]] } },
-      });
+    const [, collection, , term, file, optionsLength] = args;
+    let hits = queryHits;
+    if (collection === 'numbers_collection') {
+      hits = numberFieldsHits;
+    } else if (file === 'nested_file') {
+      hits = nestedFileCollectionHits;
+    } else if (file === 'simple_file') {
+      hits = simpleFileCollectionHits;
+    } else if (term === 'YAML') {
+      hits = [last(queryHits)];
+    } else if (term === 'Nested') {
+      hits = [queryHits[queryHits.length - 2]];
+    } else if (term === 'Deeply nested') {
+      hits = [queryHits[queryHits.length - 3]];
     }
-    return Promise.resolve({ payload: { response: { hits: queryHits } } });
+
+    hits = hits.slice(0, optionsLength);
+
+    this.setQueryHits(hits);
+
+    return Promise.resolve({ payload: { response: { hits } } });
   });
 
   render() {
@@ -208,75 +229,13 @@ function setup({ field, value }) {
   };
 }
 
-describe('expandPath', () => {
-  it('should expand wildcard paths', () => {
-    const data = {
-      categories: [
-        {
-          name: 'category 1',
-        },
-        {
-          name: 'category 2',
-        },
-      ],
-    };
-
-    expect(expandPath({ data, path: 'categories.*.name' })).toEqual([
-      'categories.0.name',
-      'categories.1.name',
-    ]);
-  });
-
-  it('should handle wildcard at the end of the path', () => {
-    const data = {
-      nested: {
-        otherNested: {
-          list: [
-            {
-              title: 'title 1',
-              nestedList: [{ description: 'description 1' }, { description: 'description 2' }],
-            },
-            {
-              title: 'title 2',
-              nestedList: [{ description: 'description 2' }, { description: 'description 2' }],
-            },
-          ],
-        },
-      },
-    };
-
-    expect(expandPath({ data, path: 'nested.otherNested.list.*.nestedList.*' })).toEqual([
-      'nested.otherNested.list.0.nestedList.0',
-      'nested.otherNested.list.0.nestedList.1',
-      'nested.otherNested.list.1.nestedList.0',
-      'nested.otherNested.list.1.nestedList.1',
-    ]);
-  });
-
-  it('should handle non wildcard index', () => {
-    const data = {
-      categories: [
-        {
-          name: 'category 1',
-        },
-        {
-          name: 'category 2',
-        },
-      ],
-    };
-    const path = 'categories.0.name';
-
-    expect(expandPath({ data, path })).toEqual(['categories.0.name']);
-  });
-});
-
 describe('Relation widget', () => {
   it('should list the first 20 option hits on initial load', async () => {
     const field = fromJS(fieldConfig);
     const { getAllByText, input } = setup({ field });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
-    await wait(() => {
+    await waitFor(() => {
       expect(getAllByText(/^Post # (\d{1,2}) post-number-\1$/)).toHaveLength(20);
     });
   });
@@ -286,7 +245,7 @@ describe('Relation widget', () => {
     const { getAllByText, input } = setup({ field });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
-    await wait(() => {
+    await waitFor(() => {
       expect(getAllByText(/^Post # (\d{1,2}) post-number-\1$/)).toHaveLength(10);
     });
   });
@@ -296,7 +255,7 @@ describe('Relation widget', () => {
     const { getAllByText, input } = setup({ field });
     fireEvent.change(input, { target: { value: 'YAML' } });
 
-    await wait(() => {
+    await waitFor(() => {
       expect(getAllByText('YAML post post-yaml')).toHaveLength(1);
     });
   });
@@ -310,8 +269,9 @@ describe('Relation widget', () => {
       post: { posts: { 'Post # 1': { title: 'Post # 1', slug: 'post-number-1' } } },
     };
 
-    await wait(() => {
-      fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    await waitFor(() => {
       fireEvent.click(getByText(label));
       expect(onChangeSpy).toHaveBeenCalledTimes(1);
       expect(onChangeSpy).toHaveBeenCalledWith(value, metadata);
@@ -329,7 +289,7 @@ describe('Relation widget', () => {
 
     setQueryHitsSpy(generateHits(1));
 
-    await wait(() => {
+    await waitFor(() => {
       expect(getByText(label)).toBeInTheDocument();
       expect(onChangeSpy).toHaveBeenCalledTimes(1);
       expect(onChangeSpy).toHaveBeenCalledWith(value, metadata);
@@ -341,7 +301,7 @@ describe('Relation widget', () => {
     const { getAllByText, input } = setup({ field });
     fireEvent.change(input, { target: { value: 'Nested' } });
 
-    await wait(() => {
+    await waitFor(() => {
       expect(getAllByText('Nested post post-nested Nested field 1')).toHaveLength(1);
     });
   });
@@ -351,7 +311,7 @@ describe('Relation widget', () => {
     const { getAllByText, input } = setup({ field });
     fireEvent.change(input, { target: { value: 'Deeply nested' } });
 
-    await wait(() => {
+    await waitFor(() => {
       expect(
         getAllByText('Deeply nested post post-deeply-nested Deeply nested field'),
       ).toHaveLength(1);
@@ -375,8 +335,8 @@ describe('Relation widget', () => {
       post: { posts: { 'post-number-1': { title: 'Post # 1', slug: 'post-number-1' } } },
     };
 
-    await wait(() => {
-      fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    await waitFor(() => {
       fireEvent.click(getByText(label));
       expect(onChangeSpy).toHaveBeenCalledTimes(1);
       expect(onChangeSpy).toHaveBeenCalledWith(value, metadata);
@@ -388,7 +348,7 @@ describe('Relation widget', () => {
     const { getAllByText, input } = setup({ field });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
-    await wait(() => {
+    await waitFor(() => {
       expect(getAllByText(/^Post # (\d{1,2})$/)).toHaveLength(20);
     });
   });
@@ -405,7 +365,7 @@ describe('Relation widget', () => {
     const { getByText, getAllByText, input, onChangeSpy } = setup({ field });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
-    await wait(() => {
+    await waitFor(() => {
       expect(getAllByText(/^post # \d$/)).toHaveLength(2);
     });
 
@@ -434,16 +394,19 @@ describe('Relation widget', () => {
         post: { posts: { 'Post # 2': { title: 'Post # 2', slug: 'post-number-2' } } },
       };
 
-      await wait(() => {
-        fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      await waitFor(() => {
         fireEvent.click(getByText('Post # 1 post-number-1'));
-        fireEvent.keyDown(input, { key: 'ArrowDown' });
-        fireEvent.click(getByText('Post # 2 post-number-2'));
-
-        expect(onChangeSpy).toHaveBeenCalledTimes(2);
-        expect(onChangeSpy).toHaveBeenCalledWith(fromJS(['Post # 1']), metadata1);
-        expect(onChangeSpy).toHaveBeenCalledWith(fromJS(['Post # 1', 'Post # 2']), metadata2);
       });
+
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      await waitFor(() => {
+        fireEvent.click(getByText('Post # 2 post-number-2'));
+      });
+
+      expect(onChangeSpy).toHaveBeenCalledTimes(2);
+      expect(onChangeSpy).toHaveBeenCalledWith(fromJS(['Post # 1']), metadata1);
+      expect(onChangeSpy).toHaveBeenCalledWith(fromJS(['Post # 1', 'Post # 2']), metadata2);
     });
 
     it('should update metadata for initial preview', async () => {
@@ -459,7 +422,7 @@ describe('Relation widget', () => {
 
       setQueryHitsSpy(generateHits(2));
 
-      await wait(() => {
+      await waitFor(() => {
         expect(getByText('Post # 1 post-number-1')).toBeInTheDocument();
         expect(getByText('Post # 2 post-number-2')).toBeInTheDocument();
 
@@ -484,7 +447,7 @@ describe('Relation widget', () => {
       const { getAllByText, input, getByText } = setup({ field });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
 
-      await wait(() => {
+      await waitFor(() => {
         expect(getAllByText(/category/)).toHaveLength(2);
         expect(getByText('category 1')).toBeInTheDocument();
         expect(getByText('category 2')).toBeInTheDocument();
@@ -501,7 +464,7 @@ describe('Relation widget', () => {
       const { getAllByText, input, getByText } = setup({ field });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
 
-      await wait(() => {
+      await waitFor(() => {
         expect(getAllByText(/category/)).toHaveLength(2);
         expect(getByText('category 1')).toBeInTheDocument();
         expect(getByText('category 2')).toBeInTheDocument();

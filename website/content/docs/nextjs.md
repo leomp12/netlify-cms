@@ -86,7 +86,7 @@ module.exports = {
 }
 ```
 
-Almost there! The last thing we need to do is to add some content our `pages/index.js` file. With a little help of our webpack loader, we can now easilly import Markdown files:
+Almost there! The last thing we need to do is to add some content our `pages/index.js` file. With a little help of our webpack loader, we can now easily import Markdown files:
 
 ```js
 import Head from "next/head"
@@ -131,7 +131,7 @@ There are many different ways to add Netlify CMS to your project. The easiest is
 
 ```bash
 # Create and navigate into public/admin folder
-mkdir public/admin
+mkdir -p public/admin
 cd public/admin
 
 # Create index.html and config.yml file
@@ -192,7 +192,7 @@ Awesome! Netlify CMS should now be available at `localhost:3000/admin/index.html
 
 ## Publishing to GitHub and Netlify
 
-Create a new repository at GitHub (or one of the other supported git services) and follow the instructions on how to push existing files into your new respository.
+Create a new repository at GitHub (or one of the other supported git services) and follow the instructions on how to push existing files into your new repository.
 
 Now is probably also a good time to add a `.gitignore` file:
 

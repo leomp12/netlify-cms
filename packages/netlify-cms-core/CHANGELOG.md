@@ -3,6 +3,52 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.30.2](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/compare/netlify-cms-core@2.30.1...netlify-cms-core@2.30.2) (2020-07-16)
+
+
+### Bug Fixes
+
+* **entries-pagination:** keep loading pages until entries are available ([#4021](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/4021)) ([9119011](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/9119011c8fd304742db7490027de7faf9cec5ee0))
+* **prop-types:** check for react components via PropTypes.elementType ([#4025](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/4025)) ([d3831b1](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/d3831b1ed44fcff51a63f6645a5aa68332467dab))
+
+
+
+
+
+## [2.30.1](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/compare/netlify-cms-core@2.30.0...netlify-cms-core@2.30.1) (2020-07-14)
+
+
+### Bug Fixes
+
+* **deps:** update dependency react-scroll-sync to ^0.8.0 ([#4011](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/4011)) ([e046a41](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/e046a414f8e2c4596f440a1742b671d84b283bd5))
+* **editor:** pass back link to editor toolbar ([#4000](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/4000)) ([c3a680f](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/c3a680ff52ec8ff4fff31ca5d6074bfe07b5859c))
+* relation widget performance ([#3975](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/3975)) ([c7e0fe8](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/c7e0fe8492d09a3d151c608f50da844f421362ed))
+
+
+
+
+
+# [2.30.0](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/compare/netlify-cms-core@2.29.0...netlify-cms-core@2.30.0) (2020-07-01)
+
+
+### Bug Fixes
+
+* **config-schema:** allow field pattern to be a regex ([#3971](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/3971)) ([652045c](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/652045c9de72d9fe0230c88b3916de8c02856bfa))
+* **editor:** proper length check for history when going back in editor ([#3960](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/3960)) ([7ee9f2f](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/7ee9f2f1888fe93bd197c205fff63b90ad54b6aa))
+* only ISO date strings are parsed to Date objects ([#3923](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/3923)) ([c43858d](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/c43858d8735d11595161f24c67891333e851e0dc))
+* search file collections using top level file fields ([#3948](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/3948)) ([5d710db](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/5d710dbd69c6490eef9278aa929a1d6ac677ae6c))
+* **backup:** synchronize calls to localForage ([#3932](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/3932)) ([86562ad](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/86562ad47a81629b84ee5c805ae6ec6a8c92a122))
+* **editor-media-lib:** handle duplicate media folders ([#3921](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/3921)) ([822819f](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/822819f42a30db3b3be611852554f96a000b4795))
+
+
+### Features
+
+* validate plain fields on blur ([#3922](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/issues/3922)) ([8d2d5d5](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/commit/8d2d5d5f2c31360cb2b58870475abb553a290bdb))
+
+
+
+
+
 # [2.29.0](https://github.com/netlify/netlify-cms/tree/master/packages/netlify-cms-core/compare/netlify-cms-core@2.28.0...netlify-cms-core@2.29.0) (2020-06-18)
 
 
